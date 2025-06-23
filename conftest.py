@@ -1,25 +1,27 @@
 import os
 
 import pytest
-from selene import browser
-
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-from utils import attach
+from selene import browser
 from dotenv import load_dotenv
 
+from utils import attach
 
-DEFAULT_BROWSER_VERSION = "127.0"
+DEFAULT_BROWSER_VERSION = "128.0"
+
 
 def pytest_addoption(parser):
     parser.addoption(
         '--browser_version',
-        default='127.0'
+        default='128.0'
     )
 
-@pytest.fixture(scope="session", autouse=True)
+
+@pytest.fixture(scope='session', autouse=True)
 def load_env():
     load_dotenv()
+
 
 @pytest.fixture(scope='function')
 def browser_settings(request):
@@ -28,14 +30,12 @@ def browser_settings(request):
     options = Options()
     selenoid_capabilities = {
         "browserName": "chrome",
-        "browserVersion": "browser_version",
+        "browserVersion": browser_version,
         "selenoid:options": {
             "enableVNC": True,
-            "enableVideo": True,
-            "enableLog": True
+            "enableVideo": True
         }
     }
-
     options.capabilities.update(selenoid_capabilities)
 
     selenoid_login = os.getenv("SELENOID_LOGIN")
@@ -44,11 +44,13 @@ def browser_settings(request):
 
     driver = webdriver.Remote(
         command_executor=f"https://{selenoid_login}:{selenoid_pass}@{selenoid_url}/wd/hub",
-        options=options)
+        options=options
+    )
 
     browser.config.driver = driver
     #browser.config.timeout = 50
     browser.config.driver.maximize_window()
+
     yield browser
 
     attach.add_screenshot(browser)
